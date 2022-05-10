@@ -1,4 +1,5 @@
-import 'package:climber_monitoring/service/hotel.service.dart';
+import 'package:climber_monitoring/services/hotel.service.dart';
+import 'package:climber_monitoring/views/hotel.view.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const ClimberApp());

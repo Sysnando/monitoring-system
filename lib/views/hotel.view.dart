@@ -1,41 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:climber_monitoring/main.dart';
-import 'package:climber_monitoring/model/hotel.dart';
+import 'package:climber_monitoring/models/hotel.dart';
+import 'package:climber_monitoring/services/hotel.service.dart';
 import 'package:flutter/material.dart';
 
-class HotelService {
-
-  static const String response = '[{ "hotelId": 1001160, "hotelName": "BT Garden Bauru", "hotelCode": "BRBAUBGB", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 2, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS", "hotelCode": "BCUOUAAAA", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}]';
-  static const String response2 = '[{ "hotelId": 1001160, "hotelName": "BT Garden Bauru", "hotelCode": "BRBAUBGB", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 2, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS", "hotelCode": "BCUOUAAAA", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000} , { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS 2", "hotelCode": "BCUOUAAAA2", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN2", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}]';
-
-  List<Hotel> fetchHotels() {
-    return parseHotels(response);
-  }
-
-  Future<List<Hotel>> fetchHotels1() {
-    return Future.value(parseHotels(response2));
-  }
-
-  List<Hotel> parseHotels(String data) {
-    List parsed = jsonDecode(data);
-    return  parsed.map<Hotel>((json) => Hotel.fromJson(json)).toList();
-  }
-
-  int countByIntegration(List<Hotel> hotelList, HotelIntegrationType integrationType) {
-    return hotelList.where((hotel) => hotel.integration.type ==integrationType.name).length;
-  }
-
-  List<FutureBuilder<List<Hotel>>> buildHotels(List<Hotel> hotelList) {
-    List<FutureBuilder<List<Hotel>>> listHotelsWidgets = [];
-    listHotelsWidgets.add(buildHotelWidget(Future.value(hotelList.where((hotel) => hotel.integration.type == HotelIntegrationType.KpisCalculatedTime.name).toList())));
-    listHotelsWidgets.add(buildHotelWidget(Future.value(hotelList.where((hotel) => hotel.integration.type == HotelIntegrationType.RatesCalculatedTime.name).toList())));
-    return listHotelsWidgets;
-  }
-}
-
-//-----Widgets-----
+final hotelService = HotelService();
 
 class HotelPage extends StatefulWidget {
   final String title;  
@@ -51,7 +20,7 @@ class _HotelPageState extends State<HotelPage> {
 
   int _refreshButtonState = 0;
   final String title;
-  List<Hotel> hotels = hotelService.fetchHotels();
+  List<Hotel> _hotels = hotelService.fetchHotels();
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +34,7 @@ class _HotelPageState extends State<HotelPage> {
           Tab(text: onTab(HotelIntegrationType.RatesCalculatedTime)),
         ],)
       ),
-      body: TabBarView(children: hotelService.buildHotels(hotels),),      
+      body: TabBarView(children: hotelService.buildHotels(_hotels),),      
       floatingActionButton: FloatingActionButton(
         onPressed: refresh,
         backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
@@ -90,7 +59,7 @@ class _HotelPageState extends State<HotelPage> {
     setState(() {
       _refreshButtonState = 1;
       hotelService.fetchHotels1().then((value) => {
-        hotels = value,
+        _hotels = value,
         _refreshButtonState = 2        
       });
     });
@@ -103,11 +72,11 @@ class _HotelPageState extends State<HotelPage> {
   String onTab(HotelIntegrationType type){
     switch(type) {
       case HotelIntegrationType.KpisCalculatedTime: 
-        return 'PMS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'PMS (' + hotelService.countByIntegration(_hotels, type).toString() + ')';
       case HotelIntegrationType.RatesCalculatedTime:
-        return 'RS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'RS (' + hotelService.countByIntegration(_hotels, type).toString() + ')';
       default: {
-        return 'Others' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'Others' + hotelService.countByIntegration(_hotels, type).toString() + ')';
       }  
     }
   }
