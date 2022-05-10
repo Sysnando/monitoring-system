@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:climber_monitoring/main.dart';
@@ -13,8 +14,8 @@ class HotelService {
     return parseHotels(response);
   }
 
-    List<Hotel> fetchHotels1() {
-    return parseHotels(response2);
+  Future<List<Hotel>> fetchHotels1() {
+    return Future.value(parseHotels(response2));
   }
 
   List<Hotel> parseHotels(String data) {
@@ -48,6 +49,7 @@ class _HotelPageState extends State<HotelPage> {
 
   _HotelPageState(this.title);
 
+  int _refreshButtonState = 0;
   final String title;
   List<Hotel> hotels = hotelService.fetchHotels();
 
@@ -67,15 +69,34 @@ class _HotelPageState extends State<HotelPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: refresh,
         backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
-        child: const Icon(Icons.update),
-        
+        child: setUpUpdateButton(),
       ),
     );
   }
   
+  Widget setUpUpdateButton() {
+    if (_refreshButtonState == 0) {
+      return const Icon(Icons.update);
+    } else if (_refreshButtonState == 1) {
+      return const CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      );
+    } else {
+      return const Icon(Icons.check, color: Colors.white);
+    }
+  }
+
   void refresh() {
     setState(() {
-      hotels = hotelService.fetchHotels1();
+      _refreshButtonState = 1;
+      hotelService.fetchHotels1().then((value) => {
+        hotels = value,
+        _refreshButtonState = 2        
+      });
+    });
+
+    Timer(const Duration(milliseconds: 3300), () {
+      setState(() { _refreshButtonState = 0; });
     });
   }
 
