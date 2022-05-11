@@ -11,14 +11,16 @@ class ClimberApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const appTitle = 'Climber Monitoring';
-
     return const MaterialApp(
-      title: appTitle,      
+      title: 'Climber',      
       home: DefaultTabController(
         length: 2,
-        child: HotelPage(title: appTitle)                
+        child: HotelPage()
       )
     );
   }
+}
+
+enum Environment {
+  prod, qa, dev
 }

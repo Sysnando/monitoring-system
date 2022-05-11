@@ -36,7 +36,7 @@ class Hotel {
   });
 
   factory Hotel.fromJson(Map<String, dynamic> json) {
-    print(json);
+    //print(json);
     return Hotel(
       id: json['hotelId'] as int,
       code: json['hotelCode'] as String,
@@ -45,8 +45,6 @@ class Hotel {
       integration: HotelIntegration.fromJson(json) 
     );
   }
-
-  
 }
 
 class HotelIntegration {
@@ -76,5 +74,5 @@ enum HotelIntegrationType {
 }
 
 enum HotelStatus {
-  ok, warning, critical
+  critical, warning, ok
 }

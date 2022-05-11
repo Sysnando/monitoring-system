@@ -3,23 +3,24 @@ import 'dart:async';
 import 'package:climber_monitoring/models/hotel.dart';
 import 'package:climber_monitoring/services/hotel.service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 final hotelService = HotelService();
 
+final dateTimeFormatter = DateFormat('yyyy-MM-dd hh:mm');
+
 class HotelPage extends StatefulWidget {
-  final String title;  
-  const HotelPage({ Key? key, required this.title }) : super(key: key);
+  const HotelPage({ Key? key }) : super(key: key);
 
   @override
-  State<HotelPage> createState() => _HotelPageState(this.title);
+  State<HotelPage> createState() => _HotelPageState();
 }
 
 class _HotelPageState extends State<HotelPage> {
 
-  _HotelPageState(this.title);
+  _HotelPageState();
 
   int _refreshButtonState = 0;
-  final String title;
   List<Hotel> _hotels = hotelService.fetchHotels();
 
   @override
@@ -27,7 +28,7 @@ class _HotelPageState extends State<HotelPage> {
 
     return Scaffold(      
       appBar: AppBar(
-        title: Text(title),
+        title: const Text('Monitoring'),   
         backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
         bottom: TabBar(tabs: [
           Tab(text: onTab(HotelIntegrationType.KpisCalculatedTime)),
@@ -120,28 +121,42 @@ class HotelStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return Card(
-      color: hotel.getColor(),
-      child: Column (
-        children: [
-          ListTile(
-            title: Text(hotel.name),
-            subtitle: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  hotel.code,
-                  style: TextStyle(color: Colors.black.withOpacity(0.6)),
+    return Card(        
+        color: hotel.getColor(),      
+        child: Column (        
+          children: [
+            ListTile(
+              title: Text(hotel.name),
+              subtitle: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    hotel.code,
+                    style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                  ),
+                ],
+              ),                                    
+            ),
+            Padding(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                title: Text(
+                  'Date: ' + dateTimeFormatter.format(hotel.integration.lastUpdated),
+                  style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
                 ),
-                Text(
-                  hotel.integration.numberOfDays.toString(),
-                  style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold),
-                )
-              ],
-            ),            
-          ),
-        ],
-      ),
+                subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      hotel.integration.numberOfDays.toString() + ' Days ago',
+                      style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
+                    ),
+                  ],
+                ),                                    
+              ),
+            )
+          ],
+        ),
     );
   }
 }

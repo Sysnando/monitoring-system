@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:climber_monitoring/models/hotel.dart';
 import 'package:climber_monitoring/views/hotel.view.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +9,20 @@ import 'package:flutter/material.dart';
 class HotelService {
 
   static const String response = '[{ "hotelId": 1001160, "hotelName": "BT Garden Bauru", "hotelCode": "BRBAUBGB", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 2, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS", "hotelCode": "BCUOUAAAA", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}]';
-  static const String response2 = '[{ "hotelId": 1001160, "hotelName": "BT Garden Bauru", "hotelCode": "BRBAUBGB", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 2, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS", "hotelCode": "BCUOUAAAA", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000} , { "hotelId": 100999099, "hotelName": "KPIS BLUE BALLS 2", "hotelCode": "BCUOUAAAA2", "integrationSLA": "KpisCalculatedTime", "lastUpdate": "2022-04-01T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}, { "hotelId": 100116099, "hotelName": "Blue Balls", "hotelCode": "XXXXNNNN2", "integrationSLA": "RatesCalculatedTime", "lastUpdate": "2022-04-23T01:47:01.000+0000", "integrationStatus": 1, "hpId": 1000000}]';
+  
+  static const String _url_env_prod = 'https://app.climberrms.com';
+  static const String _url_env_qa = 'https://ecs-qua.climberrms.com';
+  static const String _url_env_dev = 'http://localhost:8080';
+
+  static const String _sla_endpoint = '/api/cs/integrations_sla';
 
   List<Hotel> fetchHotels() {
     return parseHotels(response);
   }
 
-  Future<List<Hotel>> fetchHotels1() {
-    return Future.value(parseHotels(response2));
+  Future<List<Hotel>> fetchHotels1() async {
+    final response = await http.get(Uri.parse('http://localhost:8080/api/cs/integrations_sla'));
+    return parseHotels(response.body);
   }
 
   List<Hotel> parseHotels(String data) {
