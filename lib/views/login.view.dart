@@ -87,15 +87,10 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         // parse the json to user
-                        // call the login method
+                        // call the LoginPage method
                         // store the token
                         print(user.email);
                         print(user.password);
-
-    // home: const DefaultTabController(
-      //   length: 2,        
-      //   child: HotelPage()
-      // )
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const DefaultTabController(length: 2, child: HotelPage())),

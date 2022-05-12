@@ -19,7 +19,7 @@ class HotelService {
     return parseHotels(response);
   }
 
-  Future<List<Hotel>> fetchHotels1(String url) async {
+  Future<List<Hotel>> fetchHotels1() async {
     final response = await http.get(Uri.parse(_url_env_qa + _sla_endpoint));
     return parseHotels(response.body);
   }

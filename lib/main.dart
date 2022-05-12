@@ -1,6 +1,5 @@
 import 'package:climber_monitoring/services/hotel.service.dart';
-import 'package:climber_monitoring/views/hotel.view.dart';
-import 'package:climber_monitoring/views/login.page.view.dart';
+import 'package:climber_monitoring/views/login.view.dart';
 import 'package:flutter/material.dart';
 
 ColorScheme scheme = const ColorScheme(
@@ -33,10 +32,6 @@ class ClimberApp extends StatelessWidget {
         primarySwatch: Colors.blue
       ),
       home: const LoginPage()
-      // home: const DefaultTabController(
-      //   length: 2,        
-      //   child: HotelPage()
-      // )
     );
   }
 }
