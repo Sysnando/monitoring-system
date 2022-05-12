@@ -12,7 +12,6 @@ class HotelService {
   
   static const String _url_env_prod = 'https://app.climberrms.com';
   static const String _url_env_qa = 'https://ecs-qua.climberrms.com';
-  static const String _url_env_dev = 'http://localhost:8080';
 
   static const String _sla_endpoint = '/api/cs/integrations_sla';
 
@@ -20,8 +19,8 @@ class HotelService {
     return parseHotels(response);
   }
 
-  Future<List<Hotel>> fetchHotels1() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/api/cs/integrations_sla'));
+  Future<List<Hotel>> fetchHotels1(String url) async {
+    final response = await http.get(Uri.parse(_url_env_qa + _sla_endpoint));
     return parseHotels(response.body);
   }
 
