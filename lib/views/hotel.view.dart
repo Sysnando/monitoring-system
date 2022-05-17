@@ -10,6 +10,7 @@ final hotelService = HotelService();
 final dateTimeFormatter = DateFormat('yyyy-MM-dd hh:mm');
 
 class HotelPage extends StatefulWidget {
+  
   const HotelPage({ Key? key }) : super(key: key);
 
   @override
@@ -17,15 +18,16 @@ class HotelPage extends StatefulWidget {
 }
 
 class _HotelPageState extends State<HotelPage> {
+  List<Hotel> hotels = [];
 
   _HotelPageState();
 
   int _refreshButtonState = 0;
-  List<Hotel> _hotels = hotelService.fetchHotels();
+  
 
   @override
   Widget build(BuildContext context) {
-
+    
     return Scaffold(      
       appBar: AppBar(
         title: const Text('Monitoring'),   
@@ -35,7 +37,17 @@ class _HotelPageState extends State<HotelPage> {
           Tab(text: onTab(HotelIntegrationType.RatesCalculatedTime)),
         ],)
       ),
-      body: TabBarView(children: hotelService.buildHotels(_hotels),),      
+      body: FutureBuilder(
+        future: hotelService.buildHotels(),
+        builder: (context, AsyncSnapshot snapshot) {
+          if(snapshot.hasData) {
+            //hotels = snapshot.data;
+            return TabBarView(children: snapshot.data);
+          } else {
+            return const CircularProgressIndicator();
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: refresh,
         backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
@@ -43,7 +55,19 @@ class _HotelPageState extends State<HotelPage> {
       ),
     );
   }
-  
+
+  Widget setUpTabBarView() {
+    if (_refreshButtonState == 0) {
+      return const Icon(Icons.update);
+    } else if (_refreshButtonState == 1) {
+      return const CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      );
+    } else {
+      return const Icon(Icons.check, color: Colors.white);
+    }
+  }
+
   Widget setUpUpdateButton() {
     if (_refreshButtonState == 0) {
       return const Icon(Icons.update);
@@ -59,8 +83,8 @@ class _HotelPageState extends State<HotelPage> {
   void refresh() {
     setState(() {
       _refreshButtonState = 1;
-      hotelService.fetchHotels1().then((value) => {
-        _hotels = value,
+      hotelService.fetchHotels().then((value) => {
+        hotels = value,
         _refreshButtonState = 2        
       });
     });
@@ -73,15 +97,22 @@ class _HotelPageState extends State<HotelPage> {
   String onTab(HotelIntegrationType type){
     switch(type) {
       case HotelIntegrationType.KpisCalculatedTime: 
-        return 'PMS (' + hotelService.countByIntegration(_hotels, type).toString() + ')';
+        return 'PMS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
       case HotelIntegrationType.RatesCalculatedTime:
-        return 'RS (' + hotelService.countByIntegration(_hotels, type).toString() + ')';
+        return 'RS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
       default: {
-        return 'Others' + hotelService.countByIntegration(_hotels, type).toString() + ')';
+        return 'Others' + hotelService.countByIntegration(hotels, type).toString() + ')';
       }  
     }
   }
 }
+
+// FutureBuilder<int> buildTabNameWidget(){
+//   return FutureBuilder<int>(
+//     future: hotelService.countByIntegration(hotels, type).toString(),
+//     builder: ,
+//   );
+// }
 
 FutureBuilder<List<Hotel>> buildHotelWidget(Future<List<Hotel>> listHotels){
   return FutureBuilder<List<Hotel>>(
@@ -103,7 +134,7 @@ class HotelList extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: 3,
       ), 
       itemCount: hotels.length,
       itemBuilder: (context, index) {
@@ -126,35 +157,56 @@ class HotelStatusCard extends StatelessWidget {
         child: Column (        
           children: [
             ListTile(
-              title: Text(hotel.name),
-              subtitle: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              title: Text(hotel.code, style: const TextStyle(fontSize: 14)),
+              subtitle: Column(
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  Text(
-                    hotel.code,
-                    style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          hotel.name,
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.6),
+                            fontSize: 8
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )                      
+                    ],
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        hotel.integration.numberOfDays.toString(),
+                        style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      Text(
+                        ' Days ago',
+                        style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 6),
+                      ) 
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Last Updated:',
+                        style: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 8),
+                      )
+                    ],
+                  ), 
+                  Row(
+                    children: [
+                      Text(
+                        dateTimeFormatter.format(hotel.integration.lastUpdated),
+                        style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
+                      )
+                    ],
+                  ), 
                 ],
-              ),                                    
-            ),
-            Padding(
-              padding: EdgeInsets.zero,
-              child: ListTile(
-                title: Text(
-                  'Date: ' + dateTimeFormatter.format(hotel.integration.lastUpdated),
-                  style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
-                ),
-                subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      hotel.integration.numberOfDays.toString() + ' Days ago',
-                      style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
-                    ),
-                  ],
-                ),                                    
-              ),
-            )
+              )                                   
+            ),        
           ],
         ),
     );

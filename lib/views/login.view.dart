@@ -1,4 +1,5 @@
 import 'package:climber_monitoring/models/user.dart';
+import 'package:climber_monitoring/services/user.service.dart';
 import 'package:climber_monitoring/views/hotel.view.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +10,12 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+final userService = UserService();
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-
-  User user = User(email: '', password: '');
+  
+  User user = User(username: '', password: '');
   var rememberValue = false;
 
   @override
@@ -47,12 +50,12 @@ class _LoginPageState extends State<LoginPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      user.email = value;
+                      user.username = value;
                       return null;
                     },
                     maxLines: 1,
                     decoration: InputDecoration(
-                      hintText: 'Enter your email',
+                      hintText: 'Enter your username',
                       prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -82,19 +85,22 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(
                     height: 20,
-                  ),         
+                  ),
+                           
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // parse the json to user
-                        // call the LoginPage method
-                        // store the token
-                        print(user.email);
-                        print(user.password);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const DefaultTabController(length: 2, child: HotelPage())),
-                        );
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {   
+                        userService.login(user).then((isAuthenticated) => {
+                          if(!isAuthenticated) {
+                            //TODO show auth msg error
+                            print('aprensentar mensagem na tela')
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const DefaultTabController(length: 2, child: HotelPage()))
+                            )
+                          }
+                        });
                       }
                       user.clear();
                     },
