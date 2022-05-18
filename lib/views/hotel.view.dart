@@ -5,9 +5,8 @@ import 'package:climber_monitoring/services/hotel.service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-final hotelService = HotelService();
-
-final dateTimeFormatter = DateFormat('yyyy-MM-dd hh:mm');
+final _dateTimeFormatter = DateFormat('yyyy-MM-dd hh:mm');
+final _hotelService = HotelService();
 
 class HotelPage extends StatefulWidget {
   
@@ -18,48 +17,77 @@ class HotelPage extends StatefulWidget {
 }
 
 class _HotelPageState extends State<HotelPage> {
-  List<Hotel> hotels = [];
-
   _HotelPageState();
 
-  int _refreshButtonState = 0;
-  
+  List<Hotel> hotels = [];
+  int refreshButton = 0;  
 
   @override
   Widget build(BuildContext context) {
-    
-    return Scaffold(      
-      appBar: AppBar(
-        title: const Text('Monitoring'),   
-        backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
-        bottom: TabBar(tabs: [
-          Tab(text: onTab(HotelIntegrationType.KpisCalculatedTime)),
-          Tab(text: onTab(HotelIntegrationType.RatesCalculatedTime)),
-        ],)
-      ),
-      body: FutureBuilder(
-        future: hotelService.buildHotels(),
-        builder: (context, AsyncSnapshot snapshot) {
-          if(snapshot.hasData) {
-            //hotels = snapshot.data;
-            return TabBarView(children: snapshot.data);
-          } else {
-            return const CircularProgressIndicator();
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: refresh,
-        backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
-        child: setUpUpdateButton(),
-      ),
-    );
+
+    return FutureBuilder(
+      future: _hotelService.fetchHotels(),
+      builder: (context, AsyncSnapshot snapshot) {
+        if(snapshot.hasData) {
+          hotels = snapshot.data;
+          return Scaffold(      
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              title: const Text('Monitoring'),   
+              backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
+              bottom: TabBar(tabs: [
+                Tab(text: onTab(HotelIntegrationType.KpisCalculatedTime)),
+                Tab(text: onTab(HotelIntegrationType.RatesCalculatedTime)),
+              ],)
+            ),
+            body: TabBarView(children: _hotelService.buildHotelList(snapshot.data)),
+            floatingActionButton: FloatingActionButton(
+              onPressed: refresh,
+              backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
+              foregroundColor: Colors.white,
+              child: setUpUpdateButton(),
+            ),
+          );
+        }
+        else {
+          // TODO add a climber progress bar 
+          return  CircularProgressIndicator();
+        }
+        
+      });
+
+    // return Scaffold(      
+    //   appBar: AppBar(
+    //     title: const Text('Monitoring'),   
+    //     backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
+    //     bottom: TabBar(tabs: [
+    //       Tab(text: onTab(HotelIntegrationType.KpisCalculatedTime)),
+    //       Tab(text: onTab(HotelIntegrationType.RatesCalculatedTime)),
+    //     ],)
+    //   ),
+    //   body: FutureBuilder(
+    //     future: hotelService.fetchHotels(),
+    //     builder: (context, AsyncSnapshot snapshot) {
+    //       if(snapshot.hasData) {
+    //         hotels = snapshot.data;
+    //         return TabBarView(children: hotelService.buildHotels(snapshot.data));
+    //       } else {
+    //         return const CircularProgressIndicator();
+    //       }
+    //     },
+    //   ),
+    //   floatingActionButton: FloatingActionButton(
+    //     onPressed: refresh,
+    //     backgroundColor: const Color.fromRGBO(25, 192, 255, 1),
+    //     child: setUpUpdateButton(),
+    //   ),
+    // );
   }
 
   Widget setUpTabBarView() {
-    if (_refreshButtonState == 0) {
+    if (refreshButton == 0) {
       return const Icon(Icons.update);
-    } else if (_refreshButtonState == 1) {
+    } else if (refreshButton == 1) {
       return const CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
       );
@@ -69,9 +97,9 @@ class _HotelPageState extends State<HotelPage> {
   }
 
   Widget setUpUpdateButton() {
-    if (_refreshButtonState == 0) {
+    if (refreshButton == 0) {
       return const Icon(Icons.update);
-    } else if (_refreshButtonState == 1) {
+    } else if (refreshButton == 1) {
       return const CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
       );
@@ -82,26 +110,26 @@ class _HotelPageState extends State<HotelPage> {
 
   void refresh() {
     setState(() {
-      _refreshButtonState = 1;
-      hotelService.fetchHotels().then((value) => {
+      refreshButton = 1;
+      _hotelService.fetchHotels().then((value) => {
         hotels = value,
-        _refreshButtonState = 2        
+        refreshButton = 2        
       });
     });
 
     Timer(const Duration(milliseconds: 3300), () {
-      setState(() { _refreshButtonState = 0; });
+      setState(() { refreshButton = 0; });
     });
   }
 
-  String onTab(HotelIntegrationType type){
+  String onTab(HotelIntegrationType type) {
     switch(type) {
       case HotelIntegrationType.KpisCalculatedTime: 
-        return 'PMS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'PMS (' + _hotelService.countByIntegration(hotels, type).toString() + ')';
       case HotelIntegrationType.RatesCalculatedTime:
-        return 'RS (' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'RS (' + _hotelService.countByIntegration(hotels, type).toString() + ')';
       default: {
-        return 'Others' + hotelService.countByIntegration(hotels, type).toString() + ')';
+        return 'Others' + _hotelService.countByIntegration(hotels, type).toString() + ')';
       }  
     }
   }
@@ -114,16 +142,6 @@ class _HotelPageState extends State<HotelPage> {
 //   );
 // }
 
-FutureBuilder<List<Hotel>> buildHotelWidget(Future<List<Hotel>> listHotels){
-  return FutureBuilder<List<Hotel>>(
-      future: listHotels,      
-      builder: (context, snapshot) {
-        if(snapshot.hasError) { debugPrint(snapshot.error.toString()); return const Center(child: Text('Unexpected error'),); } 
-        else if (snapshot.hasData) { return HotelList(hotels: snapshot.data!); } 
-        else { return const Center(child: CircularProgressIndicator(),);}
-      }
-  );
-}
 
 class HotelList extends StatelessWidget {
   const HotelList({ Key? key, required this.hotels }) : super(key: key);
@@ -199,7 +217,7 @@ class HotelStatusCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        dateTimeFormatter.format(hotel.integration.lastUpdated),
+                        _dateTimeFormatter.format(hotel.integration.lastUpdated),
                         style: TextStyle(color: Colors.black.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 10),
                       )
                     ],

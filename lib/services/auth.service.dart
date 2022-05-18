@@ -4,7 +4,7 @@ import 'package:climber_monitoring/models/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class UserService {
+class AuthService {
 
   static const String uri = 'https://qua-ecs.climberrms.com/api/authenticate';
   final _storage = const FlutterSecureStorage();
@@ -26,5 +26,9 @@ class UserService {
 
   Future<String?> getToken() {
     return _storage.read(key: 'token');
+  }
+
+  void logout() async {
+    _storage.deleteAll();
   }
 }

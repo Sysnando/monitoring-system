@@ -1,5 +1,5 @@
 import 'package:climber_monitoring/models/user.dart';
-import 'package:climber_monitoring/services/user.service.dart';
+import 'package:climber_monitoring/services/auth.service.dart';
 import 'package:climber_monitoring/views/hotel.view.dart';
 import 'package:flutter/material.dart';
 
@@ -10,13 +10,12 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-final userService = UserService();
-
 class _LoginPageState extends State<LoginPage> {
+  final _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   
-  User user = User(username: '', password: '');
-  var rememberValue = false;
+  User user = User();
+  //var rememberValue = false;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {   
-                        userService.login(user).then((isAuthenticated) => {
+                        _auth.login(user).then((isAuthenticated) => {
                           if(!isAuthenticated) {
                             //TODO show auth msg error
                             print('aprensentar mensagem na tela')
@@ -115,21 +114,21 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  CheckboxListTile(
-                    title: const Text("Remember me"),
-                    contentPadding: EdgeInsets.zero,
-                    value: rememberValue,
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (newValue) {
-                      setState(() {
-                        rememberValue = newValue!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
+                  // const SizedBox(
+                  //   height: 20,
+                  // ),
+                  // CheckboxListTile(
+                  //   title: const Text("Remember me"),
+                  //   contentPadding: EdgeInsets.zero,
+                  //   value: rememberValue,
+                  //   activeColor: Theme.of(context).colorScheme.primary,
+                  //   onChanged: (newValue) {
+                  //     setState(() {
+                  //       rememberValue = newValue!;
+                  //     });
+                  //   },
+                  //   controlAffinity: ListTileControlAffinity.leading,
+                  // ),
                 ],
               ),
             )
